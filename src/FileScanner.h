@@ -17,8 +17,8 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// ReSharper disable CppFunctionIsNotImplemented
 #pragma once
-
 #include <QObject>
 #include <QString>
 #include <QVector>

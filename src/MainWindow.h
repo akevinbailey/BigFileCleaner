@@ -18,8 +18,6 @@
 // SOFTWARE.
 
 #pragma once
-
-
 #include <QMainWindow>
 #include <memory>
 #include "FileScanner.h"
