@@ -72,15 +72,28 @@ if (WIN32 AND EXISTS "${APP_RC}")
     list(APPEND APP_SOURCES "${APP_RC}")
 endif()
 
+# macOS: add .icns icon into the bundle if present
+set(APP_ICON_MAC "${CMAKE_CURRENT_SOURCE_DIR}/resources/${PROJECT_NAME}.icns")
+if (APPLE AND EXISTS "${APP_ICON_MAC}")
+    # Put icon into the bundle Resources
+    set_source_files_properties(${APP_ICON_MAC}
+            PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    list(APPEND APP_SOURCES "${APP_ICON_MAC}")
+endif()
+
 # GUI subsystem on Windows (no console)
 set(_WIN_GUI_FLAG "")
 if (WIN32)
     set(_WIN_GUI_FLAG WIN32)
-elseif (APPLE)
-    set(_WIN_GUI_FLAG APPLE)
 endif()
 
-add_executable(${PROJECT_NAME} ${_WIN_GUI_FLAG}
+# GUI subsystem on Apple (no console)
+set(_MAC_BUNDLE_FLAG "")
+if (APPLE)
+    set(_MAC_BUNDLE_FLAG MACOSX_BUNDLE)
+endif()
+
+add_executable(${PROJECT_NAME} ${_WIN_GUI_FLAG} ${_MAC_BUNDLE_FLAG}
         ${APP_SOURCES}
         ${APP_HEADERS}
 )
@@ -96,6 +109,21 @@ else()
 endif()
 
 ############################# Copy libraries to their required directories #############################
+
+# macOS bundle properties (name, icon, id, etc.)                  # <<< NEW
+if (APPLE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_BUNDLE_NAME          "${PROJECT_NAME}"
+            MACOSX_BUNDLE_GUI_IDENTIFIER       "com.example.${PROJECT_NAME}"
+            MACOSX_BUNDLE_BUNDLE_VERSION       "1.0.0"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.0"
+    )
+    if (EXISTS "${APP_ICON_MAC}")
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+                MACOSX_BUNDLE_ICON_FILE "${PROJECT_NAME}.icns")
+    endif()
+endif()
 
 # Add icons
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -149,33 +177,21 @@ if (WIN32)
 elseif (APPLE)
     # Windows and MacOS needs Unicode
     target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
-    set(DEPLOYQT "${Qt6_DIR}/bin/macdeployqt6")
 
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            # Set up the plugin directories
-            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/imageformats"
-            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms"
-            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/styles"
-            # Copy the imageformats plugin
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_qt_plugins_dir}/imageformats/libqico.dylib" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/imageformats/"
-            # Copy the platform plugin
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_qt_plugins_dir}/platforms/libqcocoa.dylib" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms/"
-            # Copy the styles plugin
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_qt_plugins_dir}/styles/libqmacstyle.dylib" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/styles/"
-            # Setup libs
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt6::Core>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt6::Gui>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt6::Widgets>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    # Find macdeployqt in the Qt bin dir
+    find_program(DEPLOYQT macdeployqt
+            HINTS "${Qt6_DIR}/bin" "/Library/Qt/6.10.0/macos/bin"
     )
 
-    # We must execute an external cmake script to get the extra debug files due to the way cmake handles multi-config generators
+    if (NOT DEPLOYQT)
+        message(FATAL_ERROR "macdeployqt not found. Please check Qt6_DIR or install Qt tools.")
+    endif()
+
+    # Run macdeployqt on the .app bundle itself
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND}
-            -DDEPLOYQT:FILEPATH=${DEPLOYQT}
-            -DAPP=$<TARGET_FILE:${PROJECT_NAME}>
-            -DCONFIG=$<CONFIG>
-            -P "${CMAKE_CURRENT_LIST_DIR}/cmake/run_deployqt_debug.cmake"
-            VERBATIM
-            COMMENT "deployqt (Debug only)"
+            COMMAND "${DEPLOYQT}" "$<TARGET_BUNDLE_DIR:${PROJECT_NAME}>" -verbose=1
+            COMMENT "Running macdeployqt on ${PROJECT_NAME}.app"
     )
+else()
+    # Linux: no special deployment, rely on system Qt
 endif()
