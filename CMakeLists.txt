@@ -21,18 +21,12 @@ if (WIN32)
     if (NOT DEFINED Qt6_DIR)
         set(Qt6_DIR "C:/Development/Qt/6.10.0/msvc2022_64")
     endif()
-    if (NOT DEFINED DEPLOY_QT)
-        set(DEPLOY_QT "C:/Development/Qt/6.10.0/msvc2022_64/bin/windeployqt6.exe")
-    endif()
 elseif (APPLE)
     if (NOT DEFINED CMAKE_PREFIX_PATH)
         set(CMAKE_PREFIX_PATH "/Library/Qt/6.10.0/macos/lib/cmake/Qt6")
     endif()
     if (NOT DEFINED Qt6_DIR)
         set(Qt6_DIR "/Library/Qt/6.10.0/macos")
-    endif()
-    if (NOT DEFINED DEPLOY_QT)
-        set(DEPLOY_QT "") # not used on Apple
     endif()
 else() # Linux
     # To build on Linux, use the Qt6 provided by the distro:
@@ -51,9 +45,6 @@ else() # Linux
     endif()
     if (NOT DEFINED Qt6_DIR)
         set(Qt6_DIR "/usr/lib/x86_64-linux-gnu/qt6")
-    endif()
-    if (NOT DEFINED DEPLOY_QT)
-        set(DEPLOY_QT "") # not used on Linux
     endif()
 
     # Force the rpath you want, and don't append link directories
@@ -118,12 +109,17 @@ get_filename_component(_qt_lib_dir   "${_qt_cmake_dir}/.." ABSOLUTE) # .../lib
 get_filename_component(_qt_arch_dir  "${_qt_lib_dir}/.." ABSOLUTE)   # .../gcc_64 or .../msvc2022_64
 set(_qt_plugins_dir "${_qt_arch_dir}/plugins")
 
-# For the Windows application to work, the files must be in certain locations.  The .\Release directory has all the
+# For the Windows and MacOS applications to work, the files must be in certain locations.  The .\Release directory has all the
 # files needed to execute the application
-if (WIN32)
-    # Windows needs Unicode
+if (WIN32|APPLE)
+    # Windows and MacOS needs Unicode
     target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
-    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+    if (APPLE)
+        set(DEPLOYQT "${Qt6_DIR}/bin/macdeployqt6")
+    else()
+        set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+        set(DEPLOYQT "${Qt6_DIR}/bin/windeployqt.exe")
+    endif()
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             # Set up the plugin directories
@@ -143,14 +139,13 @@ if (WIN32)
     )
 
     # We must execute an external cmake script to get the extra debug files due to the way cmake handles multi-config generators
-    set(WINDEPLOYQT "C:/Development/Qt/6.10.0/msvc2022_64/bin/windeployqt.exe")
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND}
-            -DWINDEPLOYQT:FILEPATH=${WINDEPLOYQT}
+            -DDEPLOYQT:FILEPATH=${DEPLOYQT}
             -DAPP=$<TARGET_FILE:${PROJECT_NAME}>
             -DCONFIG=$<CONFIG>
-            -P "${CMAKE_CURRENT_LIST_DIR}/cmake/run_windeployqt_debug.cmake"
+            -P "${CMAKE_CURRENT_LIST_DIR}/cmake/run_deployqt_debug.cmake"
             VERBATIM
-            COMMENT "windeployqt (Debug only)"
+            COMMENT "deployqt (Debug only)"
     )
 endif()
