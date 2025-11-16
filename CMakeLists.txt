@@ -110,7 +110,7 @@ endif()
 
 ############################# Copy libraries to their required directories #############################
 
-# macOS bundle properties (name, icon, id, etc.)                  # <<< NEW
+# macOS bundle properties (name, icon, id, etc.)
 if (APPLE)
     set_target_properties(${PROJECT_NAME} PROPERTIES
             MACOSX_BUNDLE TRUE
@@ -145,8 +145,11 @@ if (WIN32)
     # Windows and MacOS needs Unicode
     target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
-    set(DEPLOYQT "${Qt6_DIR}/bin/windeployqt.exe")
+    find_program(DEPLOYQT windeployqt.exe
+            HINTS "${Qt6_DIR}/bin" "C:/Development/Qt/6.10.0/msvc2022_64/bin"
+    )
 
+    # To reduce the file sizes on Window, we manually copy only the necessary libraries instead of using windeployqt.exe
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             # Set up the plugin directories
             COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/imageformats"
@@ -164,7 +167,7 @@ if (WIN32)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt6::Widgets>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
     )
 
-    # We must execute an external cmake script to get the extra debug files due to the way cmake handles multi-config generators
+    # We must execute an external cmake script to call windeployqt.exe and get the extra debug files due to the way cmake handles multi-config generators on Windows
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND}
             -DDEPLOYQT:FILEPATH=${DEPLOYQT}
