@@ -29,7 +29,7 @@ elseif (APPLE)
         set(CMAKE_PREFIX_PATH "/Library/Qt/6.10.0/macos/lib/cmake/Qt6")
     endif()
     if (NOT DEFINED Qt6_DIR)
-        set(Qt6_DIR "C:/Development/Qt/6.10.0/macos")
+        set(Qt6_DIR "/Library/Qt/6.10.0/macos")
     endif()
     if (NOT DEFINED DEPLOY_QT)
         set(DEPLOY_QT "") # not used on Apple
