@@ -38,3 +38,6 @@ Directory structure:
 * `./icons/BigFileCleaner.ico`
 * `./icons/BigFileCleaner.png`
 * `./BigFileCleaner`
+
+### On MacOS:
+On MacOS all the files are in the app bundle and no extra steps are required.
