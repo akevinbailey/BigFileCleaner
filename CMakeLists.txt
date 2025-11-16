@@ -76,6 +76,8 @@ endif()
 set(_WIN_GUI_FLAG "")
 if (WIN32)
     set(_WIN_GUI_FLAG WIN32)
+elseif (APPLE)
+    set(_WIN_GUI_FLAG APPLE)
 endif()
 
 add_executable(${PROJECT_NAME} ${_WIN_GUI_FLAG}
@@ -111,15 +113,11 @@ set(_qt_plugins_dir "${_qt_arch_dir}/plugins")
 
 # For the Windows and MacOS applications to work, the files must be in certain locations.  The .\Release directory has all the
 # files needed to execute the application
-if (WIN32|APPLE)
+if (WIN32)
     # Windows and MacOS needs Unicode
     target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
-    if (APPLE)
-        set(DEPLOYQT "${Qt6_DIR}/bin/macdeployqt6")
-    else()
-        set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
-        set(DEPLOYQT "${Qt6_DIR}/bin/windeployqt.exe")
-    endif()
+    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+    set(DEPLOYQT "${Qt6_DIR}/bin/windeployqt.exe")
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             # Set up the plugin directories
@@ -132,6 +130,38 @@ if (WIN32|APPLE)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_qt_plugins_dir}/platforms/qwindows.dll" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms/"
             # Copy the styles plugin
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_qt_plugins_dir}/styles/qmodernwindowsstyle.dll" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/styles/"
+            # Setup libs
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt6::Core>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt6::Gui>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt6::Widgets>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    )
+
+    # We must execute an external cmake script to get the extra debug files due to the way cmake handles multi-config generators
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            -DDEPLOYQT:FILEPATH=${DEPLOYQT}
+            -DAPP=$<TARGET_FILE:${PROJECT_NAME}>
+            -DCONFIG=$<CONFIG>
+            -P "${CMAKE_CURRENT_LIST_DIR}/cmake/run_deployqt_debug.cmake"
+            VERBATIM
+            COMMENT "deployqt (Debug only)"
+    )
+elseif (APPLE)
+    # Windows and MacOS needs Unicode
+    target_compile_definitions(${PROJECT_NAME} PRIVATE UNICODE _UNICODE)
+    set(DEPLOYQT "${Qt6_DIR}/bin/macdeployqt6")
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            # Set up the plugin directories
+            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/imageformats"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/styles"
+            # Copy the imageformats plugin
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_qt_plugins_dir}/imageformats/libqico.dylib" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/imageformats/"
+            # Copy the platform plugin
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_qt_plugins_dir}/platforms/libqcocoa.dylib" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/platforms/"
+            # Copy the styles plugin
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_qt_plugins_dir}/styles/libqmacstyle.dylib" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/styles/"
             # Setup libs
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt6::Core>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:Qt6::Gui>" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/"
