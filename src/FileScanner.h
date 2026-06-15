@@ -21,7 +21,6 @@
 #pragma once
 #include <QObject>
 #include <QString>
-#include <QVector>
 #include <QAtomicInteger>
 #include <cstdint>
 

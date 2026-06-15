@@ -42,8 +42,10 @@ private slots:
   void onScanFinished();
   void onDeleteSelected();
   void onSelectionChanged() const;
+  void showAboutDialog();
 
 private:
+  void buildMenus();
   void buildUi();
   void clearResults();
   void repopulateTableSorted();

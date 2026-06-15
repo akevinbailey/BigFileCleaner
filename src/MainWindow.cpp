@@ -18,15 +18,19 @@
 // SOFTWARE.
 
 #include "MainWindow.h"
+#include "AboutDialog.h"
 #include "SizeUtils.h"
 
+#include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QItemSelectionModel>
+#include <QKeySequence>
 #include <QLineEdit>
+#include <QMenuBar>
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QPushButton>
@@ -38,14 +42,36 @@
 #include <algorithm>
 #include <filesystem>
 
+namespace {
+constexpr int kMenuMinimumWidth = 180;
+}
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
   setWindowTitle("Big File Cleaner");
   resize(1280, 600);
+  buildMenus();
   buildUi();
 }
 
 MainWindow::~MainWindow() {
   if (scanner_) scanner_->requestStop();
+}
+
+void MainWindow::buildMenus() {
+  auto* fileMenu = menuBar()->addMenu("&File");
+  fileMenu->setMinimumWidth(kMenuMinimumWidth);
+
+  auto* exitAction = fileMenu->addAction("E&xit");
+  exitAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
+  connect(exitAction, &QAction::triggered, this, [] {
+    QApplication::quit();
+  });
+
+  auto* helpMenu = menuBar()->addMenu("&Help");
+  helpMenu->setMinimumWidth(kMenuMinimumWidth);
+
+  auto* aboutAction = helpMenu->addAction("&About...");
+  connect(aboutAction, &QAction::triggered, this, &MainWindow::showAboutDialog);
 }
 
 void MainWindow::buildUi() {
@@ -113,6 +139,11 @@ void MainWindow::buildUi() {
 void MainWindow::browseDir() {
   const QString dir = QFileDialog::getExistingDirectory(this, "Select Search Directory", edDir_->text());
   if (!dir.isEmpty()) edDir_->setText(dir);
+}
+
+void MainWindow::showAboutDialog() {
+  AboutDialog dialog(this);
+  dialog.exec();
 }
 
 void MainWindow::startSearch() {

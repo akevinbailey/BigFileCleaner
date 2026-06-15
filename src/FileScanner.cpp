@@ -215,3 +215,5 @@ void FileScanner::start() {
 
   emit finished();
 }
+
+#include "moc_FileScanner.cpp"

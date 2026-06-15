@@ -16,17 +16,17 @@ if (WIN32)
     set(CMAKE_DISABLE_FIND_PACKAGE_WrapVulkanHeaders ON)
     # Defaults for Windows (Visual Studio)
     if (NOT DEFINED CMAKE_PREFIX_PATH)
-        set(CMAKE_PREFIX_PATH "C:/Development/Qt/6.10.0/msvc2022_64/lib/cmake/Qt6")
+        set(CMAKE_PREFIX_PATH "C:/Development/Qt/6.10.3/msvc2022_64/lib/cmake/Qt6")
     endif()
     if (NOT DEFINED Qt6_DIR)
-        set(Qt6_DIR "C:/Development/Qt/6.10.0/msvc2022_64")
+        set(Qt6_DIR "C:/Development/Qt/6.10.3/msvc2022_64")
     endif()
 elseif (APPLE)
     if (NOT DEFINED CMAKE_PREFIX_PATH)
-        set(CMAKE_PREFIX_PATH "/Library/Qt/6.10.0/macos/lib/cmake/Qt6")
+        set(CMAKE_PREFIX_PATH "/Library/Qt/6.10.3/macos/lib/cmake/Qt6")
     endif()
     if (NOT DEFINED Qt6_DIR)
-        set(Qt6_DIR "/Library/Qt/6.10.0/macos")
+        set(Qt6_DIR "/Library/Qt/6.10.3/macos")
     endif()
 else() # Linux
     # To build on Linux, use the Qt6 provided by the distro:
@@ -101,6 +101,23 @@ add_executable(${PROJECT_NAME} ${_WIN_GUI_FLAG} ${_MAC_BUNDLE_FLAG}
 target_include_directories(${PROJECT_NAME} PRIVATE "${SRC_DIR}")
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
 
+set(BIGFILECLEANER_TARGET_PROCESSOR "${CMAKE_SYSTEM_PROCESSOR}")
+if (CMAKE_VS_PLATFORM_NAME)
+    set(BIGFILECLEANER_TARGET_PROCESSOR "${CMAKE_VS_PLATFORM_NAME}")
+endif()
+
+set(BIGFILECLEANER_COMPILED_FOR "${CMAKE_SYSTEM_NAME} ${BIGFILECLEANER_TARGET_PROCESSOR}")
+set(BIGFILECLEANER_COMPILED_ON "${CMAKE_HOST_SYSTEM_NAME} ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+set(BIGFILECLEANER_COMPILED_WITH "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+string(TIMESTAMP BIGFILECLEANER_BUILD_DATE "%Y-%m-%d")
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "BIGFILECLEANER_COMPILED_FOR=\"${BIGFILECLEANER_COMPILED_FOR}\""
+        "BIGFILECLEANER_COMPILED_ON=\"${BIGFILECLEANER_COMPILED_ON}\""
+        "BIGFILECLEANER_BUILD_DATE=\"${BIGFILECLEANER_BUILD_DATE}\""
+        "BIGFILECLEANER_COMPILED_WITH=\"${BIGFILECLEANER_COMPILED_WITH}\""
+)
+
 # Enable useful warnings
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W4 /permissive-)
@@ -116,8 +133,8 @@ if (APPLE)
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_BUNDLE_NAME          "${PROJECT_NAME}"
             MACOSX_BUNDLE_GUI_IDENTIFIER       "com.example.${PROJECT_NAME}"
-            MACOSX_BUNDLE_BUNDLE_VERSION       "1.0.0"
-            MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.0"
+            MACOSX_BUNDLE_BUNDLE_VERSION       "1.5.0"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "1.5.0"
     )
     if (EXISTS "${APP_ICON_MAC}")
         set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -148,7 +165,7 @@ if (WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
     # Find windeployqt.exe in the Qt bin dir
     find_program(DEPLOYQT windeployqt.exe
-            HINTS "${Qt6_DIR}/bin" "C:/Development/Qt/6.10.0/msvc2022_64/bin"
+            HINTS "${Qt6_DIR}/bin" "C:/Development/Qt/6.10.3/msvc2022_64/bin"
     )
 
     if (NOT DEPLOYQT)
@@ -189,7 +206,7 @@ elseif (APPLE)
 
     # Find macdeployqt in the Qt bin dir
     find_program(DEPLOYQT macdeployqt
-            HINTS "${Qt6_DIR}/bin" "/Library/Qt/6.10.0/macos/bin"
+            HINTS "${Qt6_DIR}/bin" "/Library/Qt/6.10.3/macos/bin"
     )
 
     if (NOT DEPLOYQT)

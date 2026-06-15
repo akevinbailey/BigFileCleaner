@@ -17,28 +17,14 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <QApplication>
-#include <QGuiApplication>
-#include <QString>
+#pragma once
 
-#include "MainWindow.h"
+#include <QDialog>
 
-int main(int argc, char *argv[]) {
-  QApplication app(argc, argv);
+class AboutDialog final : public QDialog {
+public:
+  explicit AboutDialog(QWidget* parent = nullptr);
 
-  QCoreApplication::setOrganizationName("Andrew Kevin Bailey");
-  app.setProperty("copyright_date", QStringLiteral("2026"));
-  QCoreApplication::setApplicationName("Big File Cleaner");
-  QCoreApplication::setApplicationVersion("1.5.0");
-  QGuiApplication::setApplicationDisplayName("Big File Cleaner");
-  app.setProperty("homepage", QStringLiteral("https://github.com/akevinbailey/BigFileCleaner"));
-
-  QIcon icon;
-  icon.addFile(":/icons/BigFileCleaner.ico");
-  icon.addFile(":/icons/BigFileCleaner.png");
-  QGuiApplication::setWindowIcon(icon);
-
-  MainWindow w;
-  w.show();
-  return app.exec();
-}
+private:
+  [[nodiscard]] static QString clipboardText();
+};
