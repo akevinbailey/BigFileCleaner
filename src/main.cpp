@@ -23,14 +23,24 @@
 
 #include "MainWindow.h"
 
+namespace {
+constexpr auto kApplicationName = "BigFileCleaner";
+constexpr auto kApplicationDisplayName = "Big File Cleaner";
+#ifndef BIGFILECLEANER_DESKTOP_FILE_NAME
+#define BIGFILECLEANER_DESKTOP_FILE_NAME "io.github.akevinbailey.bigfilecleaner"
+#endif
+constexpr auto kDesktopFileName = BIGFILECLEANER_DESKTOP_FILE_NAME;
+}
+
 int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
 
   QCoreApplication::setOrganizationName("Andrew Kevin Bailey");
   app.setProperty("copyright_date", QStringLiteral("2026"));
-  QCoreApplication::setApplicationName("Big File Cleaner");
+  QCoreApplication::setApplicationName(kApplicationName);
   QCoreApplication::setApplicationVersion("1.5.0");
-  QGuiApplication::setApplicationDisplayName("Big File Cleaner");
+  QGuiApplication::setApplicationDisplayName(kApplicationDisplayName);
+  QGuiApplication::setDesktopFileName(kDesktopFileName);
   app.setProperty("homepage", QStringLiteral("https://github.com/akevinbailey/BigFileCleaner"));
 
   QIcon icon;
@@ -39,6 +49,7 @@ int main(int argc, char *argv[]) {
   QGuiApplication::setWindowIcon(icon);
 
   MainWindow w;
+  w.setWindowIcon(icon);
   w.show();
   return app.exec();
 }

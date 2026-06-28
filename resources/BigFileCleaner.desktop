@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Big File Cleaner
+GenericName=Large File Cleaner
+Comment=Find and delete large files
+Exec=~/Apps/BigFileCleaner/BigFileCleaner.AppImage
+TryExec=~/Apps/BigFileCleaner/BigFileCleaner.AppImage
+Icon=~/Apps/BigFileCleaner/icons/BigFileCleaner.png
+Terminal=false
+Categories=Utility;FileTools;Qt;
+StartupNotify=true
+StartupWMClass=BigFileCleaner

@@ -1,7 +1,7 @@
 # Big File Cleaner
 
 ## PURPOSE
-“Big File Cleaner” is a Qt 6.4+ desktop application that finds large files in a chosen directory tree and lets you delete them in bulk. Enter a minimum size (MB/GB/TB, decimals allowed), pick a search root, and review the results sorted from largest to smallest.
+“Big File Cleaner” is a Qt 6.10 desktop application that finds large files in a chosen directory tree and lets you delete them in bulk. Enter a minimum size (MB/GB/TB, decimals allowed), pick a search root, and review the results sorted from largest to smallest.
 
 ## DESCRIPTION
 The application provides two inputs: **Minimum File Size** and **Search Directory** for the root folder to scan. You can type a path directly or click **Browse**… to open a native folder chooser. Press **Search** to recursively scan the directory and all subdirectories; matches appear in the **Found** table with two columns — **File** and **Size** (human-readable). Select one or more rows and click **Delete Selected**; a confirmation dialog lists all files to be removed, and any failures are reported after the operation.
@@ -26,18 +26,12 @@ Directory structure:
 * `.\Qt6Widgets.dll`
 
 ### On Linux:
-On Linux, I am using the distro's Qt6 libraries.  Here are the commands to install them:
-* Fedora / RHEL / Rocky / Alma (x86_64, aarch64):<br>
-  `sudo dnf install -y qt6-qtbase-gui xorg-x11-server-Xwayland libxkbcommon-x11 libX11 libXext libXrender xcb-util-cursor`
-* Debian / LinuxMint / Ubuntu (amd64, arm64, etc.)<br>
-  `sudo apt-get install -y libqt6widgets6 xwayland libxcb1 libxcb-render0 libxcb-shape0 libxcb-xfixes0 libx11-6 libxext6 libxrender1 fontconfig libxkbcommon-x11-0 libxcb-cursor0`
-* openSUSE<br>
-  `sudo zypper install -y libqt6-qtbase-platformtheme libqt6-qtbase-gui xwayland xcb-util-cursor`
+On Linux, I am using the AppImage to package the application.  This allows the application to run on any Linux distribution without any additional dependencies.  I have included the icon so you can set up a .desktop file for your distribution.  
 
 Directory structure:
 * `./icons/BigFileCleaner.ico`
 * `./icons/BigFileCleaner.png`
-* `./BigFileCleaner`
+* `./BigFileCleaner.AppImage`
 
 ### On MacOS:
-On MacOS all the files are in the app bundle and no extra steps are required.
+On macOS all the files are in the app bundle and no extra steps are required.
